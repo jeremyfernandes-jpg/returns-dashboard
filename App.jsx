@@ -627,13 +627,13 @@ export default function App() {
                   return (
                     <div style={{background:"#0f172a",border:"1px solid #334155",borderRadius:8,padding:"10px 14px",fontSize:12,color:"#e2e8f0",minWidth:230}}>
                       <div style={{fontWeight:700,marginBottom:6,color:"#94a3b8"}}>{label}</div>
-                      {ptbs.length>0 && <div style={{color:"#475569",fontSize:10,marginBottom:3,textTransform:"uppercase",letterSpacing:1}}>Avg Processing Time Bucket</div>}
+                      {ptbs.length > 0 && <div style={{color:"#475569",fontSize:10,marginBottom:3,textTransform:"uppercase",letterSpacing:1}}>Avg Processing Time Bucket</div>}
                       {ptbs.map((p,i)=>{ const b=String(p.dataKey).replace("_ptb",""); return(
                         <div key={i} style={{display:"flex",justifyContent:"space-between",gap:16,marginBottom:2}}>
                           <span style={{color:OUTCOME_COLORS[b]||"#94a3b8"}}>{b}</span><span style={{fontWeight:600}}>{p.value}d</span>
                         </div>);
                       })}
-                      {dwus.length>0 && <div style={{color:"#475569",fontSize:10,margin:"6px 0 3px",textTransform:"uppercase",letterSpacing:1}}>Avg Days With User</div>}
+                      {dwus.length > 0 && <div style={{color:"#475569",fontSize:10,margin:"6px 0 3px",textTransform:"uppercase",letterSpacing:1}}>Avg Days With User</div>}
                       {dwus.map((p,i)=>{ const b=String(p.dataKey).replace("_dwu",""); return(
                         <div key={i} style={{display:"flex",justifyContent:"space-between",gap:16,marginBottom:2}}>
                           <span style={{color:OUTCOME_COLORS[b]||"#94a3b8"}}>{b}</span><span style={{fontWeight:600}}>{p.value}d</span>
