@@ -4,17 +4,46 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Returns Analysis Dashboard</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <!-- React 18 -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Recharts 2 -->
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
+  <!-- Babel for JSX transpilation -->
+  <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0b1222; }
+    body { background: #0b1222; font-family: system-ui, sans-serif; }
+    #error-banner {
+      display: none; background: #7f1d1d; color: #fca5a5;
+      padding: 20px 24px; font-size: 13px; line-height: 1.6;
+    }
   </style>
 </head>
 <body>
+  <div id="error-banner"></div>
   <div id="root"></div>
+  <script>
+    // Catch load errors before Babel runs
+    window.addEventListener('error', function(e) {
+      var banner = document.getElementById('error-banner');
+      banner.style.display = 'block';
+      banner.innerHTML = '<strong>Script load error:</strong> ' + e.message + '<br/>Source: ' + e.filename + ':' + e.lineno;
+    });
+    // Verify dependencies loaded
+    window.addEventListener('DOMContentLoaded', function() {
+      var missing = [];
+      if (!window.React)    missing.push('React');
+      if (!window.ReactDOM) missing.push('ReactDOM');
+      if (!window.Recharts) missing.push('Recharts');
+      if (!window.Babel)    missing.push('Babel');
+      if (missing.length) {
+        var banner = document.getElementById('error-banner');
+        banner.style.display = 'block';
+        banner.innerHTML = '<strong>Failed to load:</strong> ' + missing.join(', ') + '. Check your internet connection and reload.';
+      }
+    });
+  </script>
   <script type="text/babel" data-presets="react">
 const { useState, useMemo, useRef, useCallback } = React;
 const { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
