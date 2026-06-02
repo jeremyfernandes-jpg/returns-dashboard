@@ -4,12 +4,14 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Returns Analysis Dashboard</title>
-  <!-- React 18 -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <!-- Recharts 2 -->
-  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
-  <!-- Babel for JSX transpilation -->
+  <!-- Required peer deps for Recharts UMD -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/react-is@18/umd/react-is.production.min.js"></script>
+  <script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+  <!-- Recharts UMD — must come after react, react-dom, react-is, prop-types -->
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+  <!-- Babel for in-browser JSX -->
   <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,23 +26,21 @@
   <div id="error-banner"></div>
   <div id="root"></div>
   <script>
-    // Catch load errors before Babel runs
     window.addEventListener('error', function(e) {
-      var banner = document.getElementById('error-banner');
-      banner.style.display = 'block';
-      banner.innerHTML = '<strong>Script load error:</strong> ' + e.message + '<br/>Source: ' + e.filename + ':' + e.lineno;
+      var b = document.getElementById('error-banner');
+      b.style.display = 'block';
+      b.innerHTML = '<strong>Error:</strong> ' + e.message + ' (' + e.filename + ':' + e.lineno + ')';
     });
-    // Verify dependencies loaded
     window.addEventListener('DOMContentLoaded', function() {
       var missing = [];
-      if (!window.React)    missing.push('React');
-      if (!window.ReactDOM) missing.push('ReactDOM');
-      if (!window.Recharts) missing.push('Recharts');
-      if (!window.Babel)    missing.push('Babel');
+      if (!window.React)     missing.push('React');
+      if (!window.ReactDOM)  missing.push('ReactDOM');
+      if (!window.Recharts)  missing.push('Recharts');
+      if (!window.Babel)     missing.push('Babel');
       if (missing.length) {
-        var banner = document.getElementById('error-banner');
-        banner.style.display = 'block';
-        banner.innerHTML = '<strong>Failed to load:</strong> ' + missing.join(', ') + '. Check your internet connection and reload.';
+        var b = document.getElementById('error-banner');
+        b.style.display = 'block';
+        b.innerHTML = '<strong>Failed to load:</strong> ' + missing.join(', ') + '. Reload the page.';
       }
     });
   </script>
