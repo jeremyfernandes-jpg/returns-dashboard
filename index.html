@@ -118,6 +118,9 @@
       <div class="dash-sub" id="dash-sub"></div>
     </div>
     <button class="reload-btn" onclick="reloadFiles()">⬆ Reload Files</button>
+    <span id="cache-badge" style="display:none;align-items:center;gap:6px;font-size:11px;color:#6ee7b7;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:6px;padding:5px 10px;cursor:default">
+      💾 Cached data
+    </span>
   </div>
 
   <!-- Animal Type Toggle -->
@@ -403,6 +406,59 @@ function processData(cr,rr,af="all"){
   return {cases,months,kpi,grand,trend,ptb,ptbAll,rbb,topG,rtrd};
 }
 
+// ─── CACHE ────────────────────────────────────────────────────────────────────
+const CACHE_KEY = "returns_dashboard_cache";
+const CACHE_VERSION = 1;
+
+function saveCache(data, meta){
+  try {
+    const payload = JSON.stringify({ v: CACHE_VERSION, meta, data });
+    localStorage.setItem(CACHE_KEY, payload);
+  } catch(e) {
+    console.warn("Cache save failed (storage full?):", e.message);
+  }
+}
+
+function loadCache(){
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    if(parsed.v !== CACHE_VERSION) { localStorage.removeItem(CACHE_KEY); return null; }
+    return parsed;
+  } catch(e) { return null; }
+}
+
+function clearCache(){
+  localStorage.removeItem(CACHE_KEY);
+}
+
+function tryAutoLoad(){
+  const cached = loadCache();
+  if(!cached) return;
+  DATA = cached.data;
+  // Restore the raw arrays as stubs so renderAll's dash-sub line works
+  casesRaw = [{stub:true}]; rrRaw = [{stub:true}];
+  showDashboard(cached.meta, true);
+}
+
+function showDashboard(meta, fromCache=false){
+  document.getElementById("upload-screen").style.display="none";
+  const dash = document.getElementById("dashboard");
+  dash.style.display="block";
+  // Show cache badge if loaded from cache
+  const badge = document.getElementById("cache-badge");
+  if(fromCache && badge){
+    badge.style.display="inline-flex";
+    badge.title = `Cached on ${meta.savedAt}`;
+    document.getElementById("dash-sub").textContent=
+      `${meta.casesName} · ${meta.rrName} · ${fmtF(meta.grand)} unique cases · ${meta.months} months · cached ${meta.savedAt}`;
+  } else if(badge){
+    badge.style.display="none";
+  }
+  renderAll();
+}
+
 // ─── FILE LOADING ─────────────────────────────────────────────────────────────
 function dzDrag(e,which){e.preventDefault();document.getElementById("dz-"+which).classList.add("drag");}
 function dzLeave(which){document.getElementById("dz-"+which).classList.remove("drag");}
@@ -434,9 +490,12 @@ function loadFile(file,which){
 }
 
 function reloadFiles(){
+  clearCache();
   casesRaw=null; rrRaw=null; DATA=null;
   document.getElementById("upload-screen").style.display="flex";
   document.getElementById("dashboard").style.display="none";
+  const badge=document.getElementById("cache-badge");
+  if(badge) badge.style.display="none";
   ["cases","rr"].forEach(w=>{
     const dz=document.getElementById("dz-"+w);
     dz.classList.remove("loaded","loaded-rr","drag");
@@ -450,16 +509,24 @@ function reloadFiles(){
 // ─── DASHBOARD BUILD ──────────────────────────────────────────────────────────
 function buildDashboard(){
   DATA=processData(casesRaw,rrRaw,assistFilter);
-  document.getElementById("upload-screen").style.display="none";
-  document.getElementById("dashboard").style.display="block";
-  renderAll();
+  const meta={
+    casesName:document.getElementById("label-cases").textContent,
+    rrName:document.getElementById("label-rr").textContent,
+    grand:DATA.grand,
+    months:DATA.months.length,
+    savedAt:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"}),
+  };
+  saveCache(DATA,meta);
+  showDashboard(meta,false);
 }
 
 function renderAll(){
   if(!DATA) return;
   const {kpi,grand,months}=DATA;
-  document.getElementById("dash-sub").textContent=`${casesRaw[0]&&"2026_YTD_Cases.csv"} · ${fmtF(grand)} unique cases · ${months.length} months`;
-  // KPIs
+  // subtitle is set by showDashboard; only update if not from cache
+  if(casesRaw&&!casesRaw[0]?.stub){
+    document.getElementById("dash-sub").textContent=`2026_YTD_Cases.csv · ${fmtF(grand)} unique cases · ${months.length} months`;
+  }
   const kmap=[["rnr","Recommended - Not Returned"],["rr","Recommended - Returned"],["nr","Non-Responsive"],["ret","Returned"]];
   kmap.forEach(([id,b])=>{
     const n=kpi[b]??0, p=grand?(100*n/grand).toFixed(1):0;
@@ -879,6 +946,9 @@ function setPtbMode(m){
   document.getElementById("pb-all").classList.toggle("active",m==="all");
   renderTrend();
 }
+
+// ─── AUTO-LOAD CACHE ON STARTUP ───────────────────────────────────────────────
+tryAutoLoad();
 </script>
 </body>
 </html>
